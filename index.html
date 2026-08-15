@@ -155,6 +155,7 @@
   .title-slide .sub { font-size: 1.3rem; color: var(--ink-muted); margin-top: 0.9rem; max-width: 34ch; }
   .title-slide .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-faint); margin-top: 2.4rem; letter-spacing: 0.02em; }
   .title-slide .hint { font-family: var(--font-mono); font-size: 0.68rem; color: var(--ink-faint); position: absolute; bottom: 1.2rem; right: 4.2rem; }
+  .title-slide .hint .touch-only { display: none; }
   .accent-rule { width: 54px; height: 4px; background: var(--accent); border-radius: 2px; margin: 1.6rem 0 0; }
 
   /* ---- Generic content blocks ---- */
@@ -290,6 +291,38 @@
   .navbtn:focus-visible, a:focus-visible, [tabindex]:focus-visible {
     outline: 2px solid var(--accent); outline-offset: 2px;
   }
+
+  /* Touch devices have no hover, so the nav arrows need to be visible by default */
+  @media (hover: none) and (pointer: coarse) {
+    .navbtn { opacity: 0.6; width: 40px; height: 40px; }
+    .navzone:active .navbtn { opacity: 1; }
+  }
+
+  /* Phones (mostly portrait): drop the fixed 16:9 lock, use the screen, scale type down */
+  @media (max-width: 640px), (max-aspect-ratio: 4/3) {
+    .deck { padding: 0; }
+    .stage { width: 97vw; height: 94vh; max-height: none; aspect-ratio: auto; border-radius: 4px; }
+    .slide { padding: 1.5rem 1.3rem 2.9rem; }
+    .eyebrow { font-size: 0.62rem; margin-bottom: 0.6rem; }
+    h1 { font-size: 1.9rem; }
+    h2 { font-size: 1.3rem; margin-bottom: 0.7rem; }
+    .lede { font-size: 0.95rem; }
+    p { font-size: 0.85rem; }
+    .title-slide .wordmark { font-size: 2.5rem; }
+    .title-slide .sub { font-size: 1rem; max-width: none; }
+    .title-slide .meta { margin-top: 1.4rem; font-size: 0.68rem; }
+    .cards.cols-3, .cards.cols-2, .two-col { grid-template-columns: 1fr; }
+    .row3 { flex-direction: column; }
+    .diagram { gap: 0.5rem; }
+    .dbox { font-size: 0.72rem; padding: 0.45rem 0.8rem; }
+    table { font-size: 0.68rem; }
+    th, td { padding: 0.45rem 0.55rem; }
+    .formula { font-size: 0.68rem; padding: 0.75rem 0.9rem; }
+    .spec-strip { left: 1.3rem; right: 1.3rem; }
+    .navzone { width: 20%; }
+    .hint .kb-only { display: none; }
+    .hint .touch-only { display: inline; }
+  }
 </style>
 
 <div class="deck">
@@ -303,7 +336,7 @@
       <div class="sub">Compute architecture for physics-informed AI on Bittensor</div>
       <div class="accent-rule"></div>
       <div class="meta">Harshdeep Sharma &middot; Ryan Bequette &middot; Nick Fitz &middot; Aug 15, 2026</div>
-      <div class="hint">&rarr; / space to advance &middot; f for fullscreen</div>
+      <div class="hint"><span class="kb-only">&rarr; / space to advance &middot; f for fullscreen</span><span class="touch-only">swipe to advance &middot; tap edges to jump</span></div>
     </section>
 
     <!-- 2 -->
@@ -465,7 +498,55 @@
 
     <!-- 8 -->
     <section class="slide">
-      <div class="eyebrow">07 &middot; Incentives</div>
+      <div class="eyebrow">07 &middot; Distributed Training</div>
+      <h2>Miners don't just serve the model, they help build it</h2>
+      <div class="diagram" style="gap:0.5rem">
+        <div class="dbox chain">Orchestrator: assigns shards, routes gradients</div>
+        <div class="varrow">&#8595;&#8593;</div>
+        <div class="row3" style="gap:0.4rem">
+          <div class="dbox miner">Miner A<br><span style="font-weight:400;font-size:0.68rem">layers 1&ndash;4</span></div>
+          <div class="varrow" style="align-self:center">&rarr;</div>
+          <div class="dbox miner">Miner B<br><span style="font-weight:400;font-size:0.68rem">layers 5&ndash;8</span></div>
+          <div class="varrow" style="align-self:center">&rarr;</div>
+          <div class="dbox miner">Miner C<br><span style="font-weight:400;font-size:0.68rem">layers 9&ndash;12</span></div>
+        </div>
+        <div class="varrow">&#8593; compressed gradient sync, data-parallel replicas</div>
+      </div>
+      <div class="callout">Precedent, not speculation: Bittensor SN9 (IOTA) already runs an orchestrator that assigns layers to independent, unreliable miners and coordinates data- and pipeline-parallel pretraining, at 1.5B params today and scaling toward 100B (Orion). Prime Intellect and Nous Research separately proved data-parallel training over ordinary internet links by compressing gradient sync 500&ndash;10,000&times;.</div>
+      <div class="cards cols-2" style="margin-top:0.9rem">
+        <div class="card">
+          <span class="tag">Crosses the miner boundary</span>
+          <h3>Data + pipeline parallel</h3>
+          <p>Proven at Bittensor scale (SN9/IOTA) and internet scale (DiLoCo/DisTrO). This is what the orchestrator coordinates.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Stays inside one miner</span>
+          <h3>Tensor / model parallel</h3>
+          <p>Splitting a single layer's matmuls needs datacenter interconnect (NVLink/InfiniBand). Realistic scope: a miner's own multi-GPU box, not the network.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="slide">
+      <div class="eyebrow">08 &middot; Two Phases, Two Mechanisms</div>
+      <h2>Train together, then serve alone</h2>
+      <div class="two-col">
+        <div class="col-panel">
+          <h3>Training phase</h3>
+          <p>Orchestrator-coordinated, data- and pipeline-parallel across miners, building one shared surrogate model. Reward tracks each miner's contribution to the shared model's loss reduction.</p>
+        </div>
+        <div class="col-panel right">
+          <h3>Inference phase</h3>
+          <p>The Tier 1 / Tier 2 challenge-response design from slides 4 and 5, run against the finished model. Reward tracks per-challenge physics accuracy and latency.</p>
+        </div>
+      </div>
+      <div class="callout">These need separate scoring, and probably separate bond pools: contribution-to-training and per-challenge-accuracy are different kinds of work, and one reward curve forcing both into the same shape would conflate them.</div>
+    </section>
+
+    <!-- 10 -->
+    <section class="slide">
+      <div class="eyebrow">09 &middot; Incentives</div>
       <h2>Gate first, then score, then shape the curve</h2>
       <div class="content">
         <p class="lede">Three separate decisions, easy to conflate into one, so it's worth pulling apart before locking a mechanism.</p>
@@ -476,9 +557,9 @@
       </div>
     </section>
 
-    <!-- 9 -->
+    <!-- 11 -->
     <section class="slide">
-      <div class="eyebrow">08 &middot; For This Meeting</div>
+      <div class="eyebrow">10 &middot; For This Meeting</div>
       <h2>What we need to decide?</h2>
       <ul class="qlist">
         <li><span class="qn">01</span> Do we require TPU for mining, or stay GPU-first with TPU optional?</li>
@@ -486,13 +567,13 @@
       </ul>
     </section>
 
-    <!-- 10 -->
+    <!-- 12 -->
     <section class="slide">
       <div class="eyebrow">Next Steps</div>
       <h2>Where this leaves us</h2>
       <div class="closing-grid">
-        <div class="line"><span class="k">Direction</span><span class="v">Two-tier physics verification, JAX-first models, TPU-accelerated validator, GPU-open miners.</span></div>
-        <div class="line"><span class="k">Grounded in</span><span class="v">SN25 Mainframe's residual/energy trick, adapted from proteins to PDEs.</span></div>
+        <div class="line"><span class="k">Direction</span><span class="v">Two-tier physics verification, JAX-first models, TPU-accelerated validator, GPU-open miners, orchestrated cross-miner training for the shared model.</span></div>
+        <div class="line"><span class="k">Grounded in</span><span class="v">SN25 Mainframe's residual/energy trick for verification, SN9/IOTA's orchestrated pipeline training for the shared model.</span></div>
         <div class="line"><span class="k">Next</span><span class="v">Agree scope on the two open questions, then start the core-component build-out.</span></div>
       </div>
     </section>
@@ -544,5 +625,23 @@
     }
   });
   document.getElementById('stage').focus();
+
+  // Swipe left/right to navigate on touch devices (no keyboard arrows on a phone)
+  const stageForTouch = document.getElementById('stage');
+  let touchStartX = null, touchStartY = null;
+  stageForTouch.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].clientX;
+    touchStartY = e.changedTouches[0].clientY;
+  }, { passive: true });
+  stageForTouch.addEventListener('touchend', (e) => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      go(dx < 0 ? 1 : -1);
+    }
+    touchStartX = null; touchStartY = null;
+  }, { passive: true });
+
   render();
 </script>
