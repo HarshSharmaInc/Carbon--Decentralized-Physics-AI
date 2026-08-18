@@ -342,14 +342,14 @@
     <!-- 2 -->
     <section class="slide">
       <div class="eyebrow">01 &middot; The Pitch</div>
-      <h2>A subnet that sells fast physics, not raw tokens</h2>
+      <h2>A subnet that sells trained models, not answered requests</h2>
       <div class="content">
-        <p class="lede">Miners run physics-informed AI surrogates (neural operators trained to approximate PDE solutions) in place of classical FEM/CFD solvers. An engineer submits a geometry and a loading condition and gets a stress or displacement field back in milliseconds instead of a multi-hour solve.</p>
+        <p class="lede">Miners propose training strategies (backbone choice, loss terms, curriculum) for a physics challenge. Validators run the official train and eval of that exact strategy against real-time-generated data and battle-test it against real physics. The output is a Model Card, and the growing set of those is the product: a licensable model zoo for engineering teams, not a live answer to a submitted request.</p>
         <div class="cards cols-3">
           <div class="card">
             <span class="tag">Constraint 01</span>
-            <h3>Verification is the bottleneck</h3>
-            <p>A full ground-truth solve is exactly the cost we're trying to remove: we can't run one on every request without defeating the point.</p>
+            <h3>Validator compute is the scarce resource</h3>
+            <p>The validator trains and evaluates every submission from scratch. That's the real cost center now, not a separate verification step layered on top.</p>
           </div>
           <div class="card">
             <span class="tag">Constraint 02</span>
@@ -358,8 +358,8 @@
           </div>
           <div class="card">
             <span class="tag">Constraint 03</span>
-            <h3>Hardware access isn't uniform</h3>
-            <p>Consumer GPU, cloud GPU, and TPU miners are different populations with different reach; the design has to pick who it's open to.</p>
+            <h3>The hardware burden is asymmetric</h3>
+            <p>A miner submits a JSON strategy: no GPU required at all. The validator needs real training capacity. That's the opposite shape from a typical GPU-mining subnet.</p>
           </div>
         </div>
       </div>
@@ -374,42 +374,42 @@
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th></th><th>Carbon (proposed)</th><th>SN25 Mainframe</th><th>SN27 (compute)</th><th>SN64 / SN19</th></tr>
+              <tr><th></th><th>Carbon (proposed)</th><th>SN25 Mainframe</th><th>SN68 NOVA</th><th>SN64 / SN19</th></tr>
             </thead>
             <tbody>
               <tr>
                 <td>Domain</td>
                 <td class="hl">Structural &amp; mechanical PDEs</td>
                 <td>Protein folding &rarr; general scientific compute</td>
-                <td>Raw GPU rental</td>
+                <td>Drug discovery, virtual screening</td>
                 <td>General LLM inference</td>
               </tr>
               <tr>
                 <td>Miner task</td>
-                <td>Run / fine-tune a neural operator on a sampled problem</td>
+                <td>Submit a training strategy (JSON config), no compute required</td>
                 <td>Produce a protein config or DFT calculation</td>
-                <td>Pass hardware benchmark, rent GPU</td>
+                <td>Submit candidate molecules for scoring</td>
                 <td>Serve LLM inference requests</td>
               </tr>
               <tr>
                 <td>Verification</td>
-                <td>PDE residual gate (T1) + held-out FEM/CFD solve (T2)</td>
+                <td>Validator trains + evals the submitted strategy on fresh physics data</td>
                 <td>Independently computed physical energy</td>
-                <td>Proof-of-GPU benchmark</td>
+                <td>Binding-affinity model run by the validator</td>
                 <td>Output quality &amp; latency checks</td>
               </tr>
               <tr>
                 <td>Reward shape</td>
-                <td>Open question (see slide 8)</td>
+                <td>Open question (see Incentives)</td>
                 <td>Top-K, 80/20 winner-take-most</td>
-                <td>Tiered by hardware spec</td>
+                <td>Tiered by novelty &amp; score</td>
                 <td>Continuous, throughput-weighted</td>
               </tr>
               <tr>
-                <td>Miner hardware</td>
-                <td>Single commodity GPU (JAX also targets TPU)</td>
+                <td>Validator hardware</td>
+                <td>2&times; 48GB+ GPU class, comparable to NOVA (verified against its README, not a secondhand estimate)</td>
                 <td>GPU cluster for MD / DFT</td>
-                <td>Any GPU, scored by spec</td>
+                <td>2&times; GPU, &gt;48GB VRAM each for parallel inference</td>
                 <td>Multi-GPU / H100 clusters</td>
               </tr>
             </tbody>
@@ -421,67 +421,127 @@
     <!-- 4 -->
     <section class="slide">
       <div class="eyebrow">03 &middot; System Shape</div>
-      <h2>Challenge in, verified solution out</h2>
+      <h2>Strategy in, trained model out</h2>
       <div class="diagram">
+        <div class="dbox miner">Miner &middot; submits a Strategy (JSON, no compute)</div>
+        <div class="varrow">&#8595;&#8593;</div>
         <div class="dbox chain">Bittensor Chain &middot; Yuma Consensus</div>
         <div class="varrow">&#8595;&#8593;</div>
         <div class="validator-group">
           <span class="glabel">Validator</span>
           <div class="row3">
-            <div class="dbox">Challenge<br>Generator</div>
-            <div class="tier-sub">
-              <div class="dbox">Tier 1 &middot; physics gate</div>
-              <div class="dbox">Tier 2 &middot; held-out solve</div>
-            </div>
-            <div class="dbox">Score<br>Aggregator</div>
+            <div class="dbox">Data Generator<br><span style="font-weight:400;font-size:0.68rem">real-time, fresh seeded draws</span></div>
+            <div class="dbox">Train + Eval<br><span style="font-weight:400;font-size:0.68rem">executes the exact strategy</span></div>
+            <div class="dbox">Gate &amp; Score<br><span style="font-weight:400;font-size:0.68rem">hard gates, then weighted legs</span></div>
           </div>
         </div>
-        <div class="varrow">&#8595;&#8593;</div>
-        <div class="dbox miner">Miner &middot; neural operator inference</div>
         <div class="varrow">&#8595;</div>
-        <div class="vdl">Value Delivery Layer: engineering teams submit problems, consume solutions</div>
+        <div class="dbox">Model Card &middot; strategy + performance + physics results</div>
+        <div class="varrow">&#8595;</div>
+        <div class="vdl">Model Zoo &middot; engineering teams license models, sponsors fund custom challenges</div>
       </div>
     </section>
 
     <!-- 5 -->
     <section class="slide">
       <div class="eyebrow">04 &middot; Why This Can Work</div>
-      <h2>Expensive to solve, cheap to verify</h2>
+      <h2>The validator is the only one who ever runs it</h2>
       <div class="content">
-        <p class="lede">The same asymmetry that lets SN25 score a protein by its energy lets Carbon score a solution by its PDE residual: checking correctness is far cheaper than producing a correct answer.</p>
+        <p class="lede">A miner can propose anything, but they never touch the data or the training run. The validator executes the exact submitted strategy itself, on data the miner couldn't have seen coming. That's what makes the result trustworthy, not a cheap post-hoc check.</p>
         <div class="two-col">
           <div class="col-panel">
-            <h3>Tier 1 &middot; every response</h3>
-            <p>Physics-gate residuals computed directly on the miner's output field: mass &amp; momentum conservation, boundary-condition satisfaction, rollout stability. Milliseconds, runs every tempo.</p>
+            <h3>Fresh seeded draws</h3>
+            <p>Every train and eval set is generated in real time from a qualified procedural generator, seed-triggered per run. There's no static answer key to memorize or reverse-engineer.</p>
           </div>
           <div class="col-panel right">
-            <h3>Tier 2 &middot; sampled</h3>
-            <p>Comparison against a held-out classical FEM/CFD solve, drawn from a rotating problem bank the validator doesn't reveal in advance. Catches degenerate solutions that satisfy Tier 1 without actually solving the problem.</p>
+            <h3>Fail-closed hard gates</h3>
+            <p>Finite output, mass conservation, energy stability, short-rollout stability: any mandatory gate failing zeroes the score outright. No partial credit for a strategy that looks close.</p>
           </div>
         </div>
-        <div class="callout">Tier 1 alone is gameable: a near-constant field can satisfy conservation trivially. Tier 2 is the backstop that makes gate-passing mean something.</div>
+        <div class="callout">A miner who proposes a strategy that only works on data they've seen has nowhere to hide: the validator's own execution on unseen draws is the entire test.</div>
       </div>
     </section>
 
     <!-- 6 -->
     <section class="slide">
       <div class="eyebrow">05 &middot; Miner Side</div>
-      <h2>Neural operators, not language models</h2>
+      <h2>Miners propose, they don't compute</h2>
       <div class="content">
-        <p class="lede">The model zoo already exists; it doesn't need to be invented for Carbon, only adapted to run against sampled challenges.</p>
+        <p class="lede">A strategy is a menu selection plus a recipe: which backbone, which loss terms, what curriculum. The miner never trains it themselves, so mining requires no GPU at all, just a well-reasoned JSON submission and a small evaluation fee.</p>
         <div class="chip-row">
-          <span class="chip">FNO</span><span class="chip">TFNO</span><span class="chip">GNO</span>
-          <span class="chip">GINO</span><span class="chip">WNO</span>
-          <span class="chip">Transolver</span><span class="chip">GAOT</span>
+          <span class="chip">FNO</span><span class="chip">GINO</span><span class="chip">WNO</span>
+          <span class="chip">GNO</span><span class="chip">Transolver</span><span class="chip">GAOT</span>
+          <span class="chip">PhysicsNeMo-FNO</span><span class="chip">PINO</span>
         </div>
-        <p style="margin-top:0.9rem">All seven are already implemented in JAX in production use: that's a working starting model zoo, not a research bet.</p>
-        <div class="callout">Inference for these operators runs on a single commodity GPU. That's a real barrier-to-entry advantage over LLM subnets, which typically assume multi-GPU or H100 clusters just to serve.</div>
+        <p style="margin-top:0.9rem">This is the backbone menu already live in code (<code>ALLOWED_BACKBONES</code>), plus GAOT and GNO for geometries that outgrow a regular grid. Full detail on the knobs around each choice is next.</p>
+        <div class="callout">Zero hardware requirement for mining is a real structural difference from typical Bittensor subnets, where miners themselves bear the GPU cost. Here that cost concentrates entirely on the validator.</div>
       </div>
     </section>
 
     <!-- 7 -->
     <section class="slide">
-      <div class="eyebrow">06 &middot; Framework &amp; Hardware</div>
+      <div class="eyebrow">06 &middot; Strategy Schema</div>
+      <h2>Every new knob earns its place on a scored leg</h2>
+      <div class="content">
+        <p class="lede">Scoring weights physics 0.40, robustness 0.35, accuracy 0.25 (detail on the Incentives slide), with accuracy deliberately lowest so memorization can't dominate. A knob only belongs in the schema if it gives a miner a real lever on one of those legs.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>New loss term</th><th>Moves</th><th>Why it's there</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="hl">noise_robustness</td>
+                <td>Robustness leg (0.35, highest-weighted)</td>
+                <td>Penalizes output sensitivity to small input/IC perturbations, directly targeting the stress categories</td>
+              </tr>
+              <tr>
+                <td class="hl">rollout_consistency</td>
+                <td>short_rollout hard gate</td>
+                <td>Penalizes drift under autoregressive rollout vs. single-step prediction</td>
+              </tr>
+              <tr>
+                <td>spectral_matching</td>
+                <td>Physics leg</td>
+                <td>Counters FNO's known high-wavenumber spectral bias</td>
+              </tr>
+              <tr>
+                <td>sobolev_penalty</td>
+                <td>Physics leg</td>
+                <td>Matches spatial derivatives, not just field values: gradients matter for elasticity and NS</td>
+              </tr>
+              <tr>
+                <td>smoothness_tv</td>
+                <td>Physics leg</td>
+                <td>Standard fix for Gibbs-like oscillation near shocks (Burgers)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">Phase 0 priority: <code>noise_robustness</code> and <code>rollout_consistency</code> first. Both map onto the two highest-weighted scoring elements and need no new generator or reference-solver work to implement.</div>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="slide">
+      <div class="eyebrow">07 &middot; Strategy Schema, cont.</div>
+      <h2>Curriculum, and what stays off-limits</h2>
+      <div class="two-col">
+        <div class="col-panel">
+          <h3>Curriculum &middot; new, not yet implemented</h3>
+          <p>Named by the team as a wanted knob but absent from the live schema. Proposed: <code>viscosity_anneal</code> trains on smooth high-viscosity draws first, then anneals toward the shock-forming regime. <code>loss_weight_schedule</code> starts data-fit dominant, then ramps physics weight up, the standard fix for physics losses blocking early convergence.</p>
+        </div>
+        <div class="col-panel right">
+          <h3>Explicitly off-limits to miners</h3>
+          <p>No control over seeds: fresh validator-generated draws are the entire anti-gaming invariant. No visibility into gate thresholds, Score Pack weights, or eval/stress data. What's exposed is the recipe, never the answer key.</p>
+        </div>
+      </div>
+      <div class="callout">Also proposed: a <code>regularization</code> block (dropout, normalization, activation, weight init, EMA) and a <code>compute_tier</code> field tying the "pay for an edge" idea to a concrete, still hard-capped budget ceiling. Backbone list needs reconciling too: fold TFNO into an FNO factorization option rather than a separate backbone name, since it's the same architecture, not a different one.</div>
+    </section>
+
+    <!-- 9 -->
+    <section class="slide">
+      <div class="eyebrow">08 &middot; Framework &amp; Hardware</div>
       <h2>One codebase, two backends, used differently on each side</h2>
       <div class="two-col">
         <div class="col-panel">
@@ -490,91 +550,85 @@
         </div>
         <div class="col-panel right">
           <h3>Validator side: TPU is the clearer win</h3>
-          <p>Tier-2 ground-truth generation is the real throughput bottleneck: the validator has to mass-produce and verify held-out solves fast enough to keep up with miner traffic. <code>pmap</code>/<code>pjit</code> batching across a TPU pod scales that well, and FNO-style spectral convolutions (FFT + dense matmul) map cleanly onto the MXU.</p>
+          <p>The validator has to train and evaluate every submitted strategy on real-time-generated data fast enough to keep up with submission traffic. <code>pmap</code>/<code>pjit</code> batching across a TPU pod scales that well, and FNO-style spectral convolutions (FFT + dense matmul) map cleanly onto the MXU. The nearest public comparable, NOVA (SN68), runs its validator-side model on 2&times; GPUs with &gt;48GB VRAM each, verified directly against its README rather than a secondhand estimate.</p>
         </div>
       </div>
-      <div class="callout">Recommendation: JAX everywhere as the framework choice. TPU where the validator needs batch throughput. GPU-first for miners, to keep the network open.</div>
-    </section>
-
-    <!-- 8 -->
-    <section class="slide">
-      <div class="eyebrow">07 &middot; Distributed Training</div>
-      <h2>Miners don't just serve the model, they help build it</h2>
-      <div class="diagram" style="gap:0.5rem">
-        <div class="dbox chain">Orchestrator: assigns shards, routes gradients</div>
-        <div class="varrow">&#8595;&#8593;</div>
-        <div class="row3" style="gap:0.4rem">
-          <div class="dbox miner">Miner A<br><span style="font-weight:400;font-size:0.68rem">layers 1&ndash;4</span></div>
-          <div class="varrow" style="align-self:center">&rarr;</div>
-          <div class="dbox miner">Miner B<br><span style="font-weight:400;font-size:0.68rem">layers 5&ndash;8</span></div>
-          <div class="varrow" style="align-self:center">&rarr;</div>
-          <div class="dbox miner">Miner C<br><span style="font-weight:400;font-size:0.68rem">layers 9&ndash;12</span></div>
-        </div>
-        <div class="varrow">&#8593; compressed gradient sync, data-parallel replicas</div>
-      </div>
-      <div class="callout">Precedent, not speculation: Bittensor SN9 (IOTA) already runs an orchestrator that assigns layers to independent, unreliable miners and coordinates data- and pipeline-parallel pretraining, at 1.5B params today and scaling toward 100B (Orion). Prime Intellect and Nous Research separately proved data-parallel training over ordinary internet links by compressing gradient sync 500&ndash;10,000&times;.</div>
-      <div class="cards cols-2" style="margin-top:0.9rem">
-        <div class="card">
-          <span class="tag">Crosses the miner boundary</span>
-          <h3>Data + pipeline parallel</h3>
-          <p>Proven at Bittensor scale (SN9/IOTA) and internet scale (DiLoCo/DisTrO). This is what the orchestrator coordinates.</p>
-        </div>
-        <div class="card">
-          <span class="tag">Stays inside one miner</span>
-          <h3>Tensor / model parallel</h3>
-          <p>Splitting a single layer's matmuls needs datacenter interconnect (NVLink/InfiniBand). Realistic scope: a miner's own multi-GPU box, not the network.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- 9 -->
-    <section class="slide">
-      <div class="eyebrow">08 &middot; Two Phases, Two Mechanisms</div>
-      <h2>Train together, then serve alone</h2>
-      <div class="two-col">
-        <div class="col-panel">
-          <h3>Training phase</h3>
-          <p>Orchestrator-coordinated, data- and pipeline-parallel across miners, building one shared surrogate model. Reward tracks each miner's contribution to the shared model's loss reduction.</p>
-        </div>
-        <div class="col-panel right">
-          <h3>Inference phase</h3>
-          <p>The Tier 1 / Tier 2 challenge-response design from slides 4 and 5, run against the finished model. Reward tracks per-challenge physics accuracy and latency.</p>
-        </div>
-      </div>
-      <div class="callout">These need separate scoring, and probably separate bond pools: contribution-to-training and per-challenge-accuracy are different kinds of work, and one reward curve forcing both into the same shape would conflate them.</div>
+      <div class="callout">Recommendation: JAX everywhere as the framework choice. TPU where the validator needs batch throughput. Miners need no GPU at all, they only submit a strategy.</div>
     </section>
 
     <!-- 10 -->
     <section class="slide">
-      <div class="eyebrow">09 &middot; Incentives</div>
-      <h2>Gate first, then score, then shape the curve</h2>
+      <div class="eyebrow">09 &middot; Distributed Training, Resolved</div>
+      <h2>Validator-side parallelism, not cross-miner training</h2>
       <div class="content">
-        <p class="lede">Three separate decisions, easy to conflate into one, so it's worth pulling apart before locking a mechanism.</p>
-        <div class="formula"><span class="kw">eligible</span>  = tier1_gate(residual) == PASS
-<span class="kw">score</span>     = w1 &middot; tier2_physics_accuracy + w2 &middot; latency_efficiency   <span class="kw2"># only if eligible</span>
-<span class="kw">weight</span>    = reward_curve(score)   <span class="kw2"># Top-K / 80-20, or continuous (open)</span></div>
-        <p style="margin-top:0.9rem">SN25 uses Top-K, winner-take-most: sharper competition, higher variance, discourages small miners. Continuous scoring is gentler but slower to punish mediocre solutions. Bittensor also supports multiple mechanisms per subnet: separate bond pools for fast-inference vs. high-fidelity miners instead of one curve forcing a single speed/accuracy tradeoff on everyone.</p>
+        <p class="lede">An earlier version of this design explored an orchestrator that split one shared model's training across many miners, pipeline-parallel, IOTA-style. That doesn't match the confirmed mechanism: one strategy in, one validator trains it, one Model Card out. There's no step where multiple miners' compute combines into a single job.</p>
+        <div class="cards cols-2">
+          <div class="card">
+            <span class="tag">What's actually needed</span>
+            <h3>Validator-side execution capacity</h3>
+            <p>If a submitted strategy specifies a large model, the validator's own training infrastructure needs to run it, potentially across its own multi-GPU box (standard sharding, e.g. ZeRO/FSDP), not across the network.</p>
+          </div>
+          <div class="card">
+            <span class="tag">What's not needed, for now</span>
+            <h3>An orchestrator role</h3>
+            <p>SN9/IOTA-style cross-miner pipeline parallelism stays on the shelf unless the product direction moves toward one large shared foundation model instead of many strategy-scoped ones.</p>
+          </div>
+        </div>
+        <div class="callout">Keeping this slide rather than deleting it on purpose: it's a real design decision we made and then walked back once the mechanism was confirmed, worth having on record so it doesn't get re-litigated from scratch later.</div>
       </div>
     </section>
 
     <!-- 11 -->
     <section class="slide">
-      <div class="eyebrow">10 &middot; For This Meeting</div>
-      <h2>What we need to decide?</h2>
-      <ul class="qlist">
-        <li><span class="qn">01</span> Do we require TPU for mining, or stay GPU-first with TPU optional?</li>
-        <li><span class="qn">02</span> What's the realistic testnet milestone timeline?</li>
-      </ul>
+      <div class="eyebrow">10 &middot; The Data Flywheel</div>
+      <h2>Every run is a data point, not just a result</h2>
+      <div class="two-col">
+        <div class="col-panel">
+          <h3>Open path &middot; the Model Zoo</h3>
+          <p>Model Cards accumulate into a licensable, growing catalog. This is the direct product: engineering teams get fast surrogates for design exploration, real-time control, and agentic solving.</p>
+        </div>
+        <div class="col-panel right">
+          <h3>Specialist path &middot; sponsored hardening</h3>
+          <p>The knowledge graph of what's working and what isn't feeds a deliberately more rigorous re-validation pass, building specialist models for industry sponsors targeting their own physics envelope, without exposing their proprietary data.</p>
+        </div>
+      </div>
+      <div class="callout">Mining is expected to be agentic. The miner feedback loop, next up after this deck, is the mechanism that lets agents iterate locally on the accumulated intelligence without paying the submission fee every time.</div>
     </section>
 
     <!-- 12 -->
     <section class="slide">
+      <div class="eyebrow">11 &middot; Incentives</div>
+      <h2>Gate first, then score, then shape the curve</h2>
+      <div class="content">
+        <p class="lede">The real Score Pack formula, not an approximation of it.</p>
+        <div class="formula"><span class="kw">gate_failed</span> = any mandatory gate fails   <span class="kw2"># finite, mass_conservation, energy_stability, short_rollout</span>
+<span class="kw">S_combined</span>  = 0   <span class="kw2"># if gate_failed: fail-closed, no partial credit</span>
+<span class="kw">S_combined</span>  = 0.40&middot;physics + 0.35&middot;robustness + 0.25&middot;accuracy   <span class="kw2"># otherwise</span>
+<span class="kw">weight</span>      = reward_curve(S_combined)   <span class="kw2"># Top-K / 80-20, or continuous (open)</span></div>
+        <p style="margin-top:0.9rem">Accuracy is deliberately the lowest-weighted leg, so pure memorization can't dominate emissions. SN25 uses Top-K, winner-take-most: sharper competition, higher variance, discourages small miners. Continuous scoring is gentler but slower to punish mediocre strategies. Still open which shape Carbon uses.</p>
+      </div>
+    </section>
+
+    <!-- 13 -->
+    <section class="slide">
+      <div class="eyebrow">12 &middot; For This Meeting</div>
+      <h2>What we need to decide?</h2>
+      <ul class="qlist">
+        <li><span class="qn">01</span> Backbone list reconciliation: collapse fno1d/fno2d, fold TFNO into a factorization option. Code decision, not just an addition.</li>
+        <li><span class="qn">02</span> Phase 0 priority for the five new loss terms: proposing noise_robustness and rollout_consistency first.</li>
+        <li><span class="qn">03</span> Is compute_tier / fee-gating in scope now, or a later-phase concern?</li>
+        <li><span class="qn">04</span> Confirm the 256-slot cap: combined miner+validator pool (as NOVA appears to run) or miners plus validators on top?</li>
+      </ul>
+    </section>
+
+    <!-- 14 -->
+    <section class="slide">
       <div class="eyebrow">Next Steps</div>
       <h2>Where this leaves us</h2>
       <div class="closing-grid">
-        <div class="line"><span class="k">Direction</span><span class="v">Two-tier physics verification, JAX-first models, TPU-accelerated validator, GPU-open miners, orchestrated cross-miner training for the shared model.</span></div>
-        <div class="line"><span class="k">Grounded in</span><span class="v">SN25 Mainframe's residual/energy trick for verification, SN9/IOTA's orchestrated pipeline training for the shared model.</span></div>
-        <div class="line"><span class="k">Next</span><span class="v">Agree scope on the two open questions, then start the core-component build-out.</span></div>
+        <div class="line"><span class="k">Direction</span><span class="v">Strategy in, validator trains and evaluates on fresh physics data, Model Card out, model zoo is the product. JAX everywhere, TPU on the validator, zero hardware for miners.</span></div>
+        <div class="line"><span class="k">Grounded in</span><span class="v">The live strategy_schema.py and Score Pack already in the repo, extended rather than replaced; NOVA (SN68) as the closest verified compute comparable.</span></div>
+        <div class="line"><span class="k">Next</span><span class="v">Agree the Strategy Schema v1.1 proposal, then design the miner feedback loop: noisy leader hints plus a local scoring-impact estimator.</span></div>
       </div>
     </section>
 
@@ -584,7 +638,7 @@
     <div class="spec-strip">
       <span id="section-tag">SUBNET DESIGN REVIEW</span>
       <div class="dots" id="dots"></div>
-      <span id="counter">01 / 10</span>
+      <span id="counter">01 / 14</span>
     </div>
   </div>
 </div>
